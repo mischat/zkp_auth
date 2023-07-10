@@ -1,6 +1,8 @@
 syntax = "proto3";
 package zkp_auth;
 
+option go_package = "github.com/mischat/zkp_auth/pb";
+
 message RegisterRequest {
   string user = 1;
   int64 y1 = 2;
