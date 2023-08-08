@@ -6,57 +6,30 @@ import (
 	"math/big"
 
 	"github.com/fxtlabs/primes"
+	zl "github.com/mischat/zkp_auth/lib"
 )
 
 func main() {
-	fmt.Println("Hello, World!")
-
+	fmt.Println("Hello, this is a walk through of the algorithm!")
 	//Firstly let's get a prime number, and then we need to find a group.
-
 	// Generate the prime numbers less than or equal to 20
 	ps := primes.Sieve(20000)
 	fmt.Println(ps)
 
 	// We will then go ahead and create a group from the prime number
-
 	// p is a prime number
 	p := big.NewInt(23)
-
 	q := big.NewInt(11)
 
 	g := big.NewInt(4)
-
 	h := big.NewInt(9)
 
-	// This validates that q divides p - 1 evenly
-	pDivQ := new(big.Int).Div(new(big.Int).Sub(p, big.NewInt(1)), q)
-	if pDivQ.Mod(big.NewInt(0), big.NewInt(2)) == big.NewInt(0) {
-		log.Fatalf("q:'%d' needs to divide evenly to p-1 where p:'%d'", q, p)
+	valid, err := zl.ValidatePublicVariables(p, q, g, h)
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	// We need to validate that g and h are in the same group
-	// And that they both have order q
-
-	// g and h are have the same prime order
-	// g^q mod p = 1 AND h^q mod p = 1
-
-	gPowQ := new(big.Int).Exp(g, q, nil)
-
-	fmt.Println(gPowQ)
-
-	gPowQModp := new(big.Int).Mod(gPowQ, p)
-
-	fmt.Println(gPowQModp)
-
-	if new(big.Int).Mod(new(big.Int).Exp(g, q, nil), p).Cmp(big.NewInt(1)) != 0 {
-		log.Fatalf("g:'%d' does not have order q:'%d'", g, q)
-	}
-
-	if new(big.Int).Mod(new(big.Int).Exp(h, q, nil), p).Cmp(big.NewInt(1)) != 0 {
-		log.Fatalf("h:'%d' does not have order q:'%d'", g, q)
-	}
-
 	// At this point all of our input values are setup and valid
+	fmt.Printf("Valid: %t\n", valid)
 
 	// We need to set a secret value for Peggy
 	x := big.NewInt(6)

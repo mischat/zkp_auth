@@ -15,7 +15,7 @@ var (
 	port = flag.Int("port", 50051, "The server port")
 )
 
-// server is used to implement zkp_auth.zkp_auth_server
+// server is used to implement zkp_auth.server
 type server struct {
 	pb.UnimplementedAuthServer
 }
