@@ -57,7 +57,7 @@ func main() {
 
 	// The prover needs to then compute s
 	// s = (k - c .x) mod q
-	s := new(big.Int).Mod(new(big.Int).Sub(k, new(big.Int).Mul(c, x)), q)
+	s := zkal.CalculateS(k, c, x, q)
 
 	fmt.Printf("Peggy sends s: %d \n", s)
 

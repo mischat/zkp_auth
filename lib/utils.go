@@ -27,8 +27,14 @@ func ValidatePublicVariables(p *big.Int, q *big.Int, g *big.Int, h *big.Int) (bo
 	return true, nil
 }
 
+// This function is used to calculate the initial y1, y2 and the (r1, r2) = g^k, h^k
 func CalculateExp(gh *big.Int, xk *big.Int, p *big.Int) *big.Int {
 	return new(big.Int).Mod(new(big.Int).Exp(gh, xk, nil), p)
+}
+
+// s = (k - c .x) mod q
+func CalculateS(k *big.Int, c *big.Int, x *big.Int, q *big.Int) *big.Int {
+	return new(big.Int).Mod(new(big.Int).Sub(k, new(big.Int).Mul(c, x)), q)
 }
 
 //func main() {
@@ -51,15 +57,11 @@ func CalculateExp(gh *big.Int, xk *big.Int, p *big.Int) *big.Int {
 //
 //	h := big.NewInt(9)
 //
-
 // This validates that q divides p - 1 evenly
-
 // We need to validate that g and h are in the same group
 // And that they both have order q
-
 // g and h are have the same prime order
 // g^q mod p = 1 AND h^q mod p = 1
-
 //
 //	// At this point all of our input values are setup and valid
 //
@@ -78,7 +80,6 @@ func CalculateExp(gh *big.Int, xk *big.Int, p *big.Int) *big.Int {
 //	// Peggy needs to pick a random k
 //	k := big.NewInt(7)
 //
-//	// Now to calculate (r1, r2) = g^k, h^k
 //	r1 := new(big.Int).Mod(new(big.Int).Exp(g, k, nil), p)
 //	r2 := new(big.Int).Mod(new(big.Int).Exp(h, k, nil), p)
 //
@@ -88,8 +89,6 @@ func CalculateExp(gh *big.Int, xk *big.Int, p *big.Int) *big.Int {
 //	c := big.NewInt(4)
 //
 //	// The prover needs to then compute s
-//	// s = (k - c .x) mod q
-//	s := new(big.Int).Mod(new(big.Int).Sub(k, new(big.Int).Mul(c, x)), q)
 //
 //	fmt.Printf("Peggy sends s: %d \n", s)
 //
