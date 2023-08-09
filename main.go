@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"github.com/fxtlabs/primes"
-	zl "github.com/mischat/zkp_auth/lib"
+	zkal "github.com/mischat/zkp_auth/lib"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	g := big.NewInt(4)
 	h := big.NewInt(9)
 
-	valid, err := zl.ValidatePublicVariables(p, q, g, h)
+	valid, err := zkal.ValidatePublicVariables(p, q, g, h)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,10 +35,10 @@ func main() {
 	x := big.NewInt(6)
 
 	// Now to calculate y1
-	y1 := new(big.Int).Mod(new(big.Int).Exp(g, x, nil), p)
+	y1 := zkal.CalculateY(g, x, p)
 
 	// Now to calculate y2
-	y2 := new(big.Int).Mod(new(big.Int).Exp(h, x, nil), p)
+	y2 := zkal.CalculateY(h, x, p)
 
 	// This needs to be sent to Victor in the registration phase
 	fmt.Printf("Peggy sends y1: %d and y2: %d\n", y1, y2)
