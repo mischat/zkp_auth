@@ -14,6 +14,12 @@ import (
 
 var (
 	port = flag.Int("port", 50051, "The server port")
+
+	// Public variables needed for the auth system to work
+	p = flag.Int64("p", 23, "the prime number we group from")
+	q = flag.Int64("q", 11, "for prime order calculation")
+	g = flag.Int64("g", 4, "first in group")
+	h = flag.Int64("h", 9, "second in group")
 )
 
 // server is used to implement zkp_auth.server
@@ -59,6 +65,13 @@ func (s *server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 
 func main() {
 	flag.Parse()
+
+	// creating bigInts from the flags
+	bP := big.NewInt(*p)
+	bQ := big.NewInt(*q)
+	bG := big.NewInt(*g)
+	bH := big.NewInt(*h)
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

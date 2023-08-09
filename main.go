@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"github.com/fxtlabs/primes"
-	zkutils "github.com/mischat/zkp_auth/utils"
+	zkpautils "github.com/mischat/zkp_auth/utils"
 )
 
 // Ultimately we are going to use this script to generate the public data we need
@@ -26,7 +26,7 @@ func main() {
 	g := big.NewInt(4)
 	h := big.NewInt(9)
 
-	valid, err := zkutils.ValidatePublicVariables(p, q, g, h)
+	valid, err := zkpautils.ValidatePublicVariables(p, q, g, h)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,10 +37,10 @@ func main() {
 	x := big.NewInt(6)
 
 	// Now to calculate y1
-	y1 := zkutils.CalculateExp(g, x, p)
+	y1 := zkpautils.CalculateExp(g, x, p)
 
 	// Now to calculate y2
-	y2 := zkutils.CalculateExp(h, x, p)
+	y2 := zkpautils.CalculateExp(h, x, p)
 
 	// This needs to be sent to Victor in the registration phase
 	fmt.Printf("Peggy sends y1: %d and y2: %d\n", y1, y2)
@@ -49,8 +49,8 @@ func main() {
 	k := big.NewInt(7)
 
 	// Now to calculate (r1, r2) = g^k, h^k
-	r1 := zkutils.CalculateExp(g, k, p)
-	r2 := zkutils.CalculateExp(h, k, p)
+	r1 := zkpautils.CalculateExp(g, k, p)
+	r2 := zkpautils.CalculateExp(h, k, p)
 
 	fmt.Printf("Peggy sends r1: %d and r2: %d\n", r1, r2)
 
@@ -59,19 +59,19 @@ func main() {
 
 	// The prover needs to then compute s
 	// s = (k - c .x) mod q
-	s := zkutils.CalculateS(k, c, x, q)
+	s := zkpautils.CalculateS(k, c, x, q)
 
 	fmt.Printf("Peggy sends s: %d \n", s)
 
 	// Now the challenger needs to verify the proof
 	// r1 = g^s . y1^c mod p
-	_, err = zkutils.VerifyProof(r1, g, s, y1, c, p)
+	_, err = zkpautils.VerifyProof(r1, g, s, y1, c, p)
 	if err != nil {
 		log.Fatal("r1 does not match", err)
 	}
 
 	// r2 = h^s . y2^c mod p
-	_, err = zkutils.VerifyProof(r2, h, s, y2, c, p)
+	_, err = zkpautils.VerifyProof(r2, h, s, y2, c, p)
 	if err != nil {
 		log.Fatal("r2 does not match", err)
 	}
