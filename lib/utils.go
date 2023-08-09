@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"log"
 	"math/big"
 )
 
@@ -36,6 +37,23 @@ func CalculateExp(gh *big.Int, xk *big.Int, p *big.Int) *big.Int {
 func CalculateS(k *big.Int, c *big.Int, x *big.Int, q *big.Int) *big.Int {
 	return new(big.Int).Mod(new(big.Int).Sub(k, new(big.Int).Mul(c, x)), q)
 }
+
+// This method is used to verfiy proof
+// r1 = g^s . y1^c mod p
+// r2 = h^s . y2^c mod p
+func VerifyProof(r *big.Int, gh *big.Int, s *big.Int, y *big.Int, c *big.Int, p *big.Int) (bool, error) {
+	if r.Cmp(new(big.Int).Mod(new(big.Int).Mul(new(big.Int).Exp(gh, s, nil), new(big.Int).Exp(y, c, nil)), p)) != 0 {
+		log.Fatalf("r1 does not match")
+		return false, fmt.Errorf("r:'%d' does not match gh:'%d' s:'%d' y:'%d' c:'%d' p:'%d'", r, gh, s, y, c, p)
+	}
+
+	return true, nil
+}
+
+//
+//	if r2.Cmp(new(big.Int).Mod(new(big.Int).Mul(new(big.Int).Exp(h, s, nil), new(big.Int).Exp(y2, c, nil)), p)) != 0 {
+//		log.Fatalf("r2 does not match")
+//	}
 
 //func main() {
 //	fmt.Println("Hello, World!")

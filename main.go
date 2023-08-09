@@ -63,14 +63,15 @@ func main() {
 
 	// Now the challenger needs to verify the proof
 	// r1 = g^s . y1^c mod p
-	// r2 = h^s . y2^c mod p
-
-	if r1.Cmp(new(big.Int).Mod(new(big.Int).Mul(new(big.Int).Exp(g, s, nil), new(big.Int).Exp(y1, c, nil)), p)) != 0 {
-		log.Fatalf("r1 does not match")
+	_, err = zkal.VerifyProof(r1, g, s, y1, c, p)
+	if err != nil {
+		log.Fatal("r1 does not match", err)
 	}
 
-	if r2.Cmp(new(big.Int).Mod(new(big.Int).Mul(new(big.Int).Exp(h, s, nil), new(big.Int).Exp(y2, c, nil)), p)) != 0 {
-		log.Fatalf("r2 does not match")
+	// r2 = h^s . y2^c mod p
+	_, err = zkal.VerifyProof(r2, h, s, y2, c, p)
+	if err != nil {
+		log.Fatal("r2 does not match", err)
 	}
 
 	fmt.Println("Proof verified")
