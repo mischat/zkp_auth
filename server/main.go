@@ -27,11 +27,15 @@ var (
 type server struct {
 	pb.UnimplementedAuthServer
 	userRegData map[string]UserRegistration
+	// This datastructure doesn't have any timeout in place
+	// One for the future, would be good for these not to be valid for long
+	authenticationData map[string]Authentication
 }
 
 func newServer() *server {
 	return &server{
-		userRegData: make(map[string]UserRegistration),
+		userRegData:        make(map[string]UserRegistration),
+		authenticationData: make(map[string]Authentication),
 	}
 }
 
@@ -39,6 +43,14 @@ func newServer() *server {
 type UserRegistration struct {
 	y1 *big.Int
 	y2 *big.Int
+}
+
+type Authentication struct {
+	user    string
+	r1      *big.Int
+	r2      *big.Int
+	c       *big.Int
+	session string
 }
 
 // This implements the Register gRPC call
@@ -62,6 +74,41 @@ func (s *server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 	log.Printf("Stored UserID: %v", in.GetUser())
 
 	return &pb.RegisterResponse{}, nil
+}
+
+func (s *server) CreateAuthenticationChallenge(ctx context.Context, in *pb.AuthenticationChallengeRequest) (*pb.AuthenticationChallengeResponse, error) {
+	log.Printf("Received UserID: %v", in.GetUser())
+	log.Printf("Received R1: %v", in.GetR1())
+	log.Printf("Received R2: %v", in.GetR2())
+
+	// Retrieve User from the map
+	_, exists := s.userRegData[in.GetUser()]
+	if !exists {
+		return &pb.AuthenticationChallengeResponse{}, fmt.Errorf("user doesn't exists")
+	}
+
+	// Now the challenger picks a random value c
+	// it is important that these are unique for each user
+	// ideally we store the used ones somewhere, like in an associative array or something.
+	// but for this excercise we will just generate a new random one each time
+	// using a big(ish) number to ensure some randomness
+	c := zkpautils.RandomBigInt()
+	log.Printf("Generated random c: %d", c)
+
+	// Store c in the authenticationmap
+	// Note that this will only allow for a user to authenticate in one place at a time
+	authId := zkpautils.RandomString(20)
+
+	s.authenticationData[authId] = Authentication{
+		user:    in.GetUser(),
+		r1:      new(big.Int).SetInt64(in.GetR1()),
+		r2:      new(big.Int).SetInt64(in.GetR2()),
+		c:       c,
+		session: "",
+	}
+
+	return &pb.AuthenticationChallengeResponse{AuthId: authId, C: zkpautils.BigIntToInt64(c)}, nil
+
 }
 
 func main() {

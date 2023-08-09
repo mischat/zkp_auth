@@ -72,4 +72,26 @@ func main() {
 		log.Fatalf("could not register: %v", err)
 	}
 	log.Printf("Registered user %s with Y1=%d and Y2=%d", *u, y1, y2)
+
+	// now we need to generate a random k
+	// it is important that these are unique for each request
+	// ideally we store the used ones somewhere, but for this excercise we will just generate a new random one each time
+	// using a big(ish) number to ensure some randomness
+	k := zkpautils.RandomBigInt()
+	log.Printf("Generated random k: %d", k)
+
+	// Now to calculate (r1, r2) = g^k, h^k
+	r1 := zkpautils.CalculateExp(bG, k, bP)
+	r2 := zkpautils.CalculateExp(bH, k, bP)
+
+	resp, err := c.CreateAuthenticationChallenge(ctx, &pb.AuthenticationChallengeRequest{User: *u, R1: zkpautils.BigIntToInt64(r1), R2: zkpautils.BigIntToInt64(r2)})
+	if err != nil {
+		log.Fatalf("failed to create auth challenge: %v", err)
+	}
+
+	authId := resp.AuthId
+	chal := big.NewInt(resp.C)
+
+	log.Printf("authId: %s c: %d", authId, chal)
+
 }

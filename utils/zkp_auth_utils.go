@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"math"
@@ -70,4 +72,29 @@ func BigIntToInt64(x *big.Int) int64 {
 		}
 	}
 	return x.Int64()
+}
+
+// We're using the Rand function from the crypto/rand package
+// This number should be big enough to be unique for this exercise
+func RandomBigInt() *big.Int {
+	// Max random value, a 16-bits integer, i.e 2^16 - 1
+	max := new(big.Int)
+	max.Exp(big.NewInt(2), big.NewInt(16), nil).Sub(max, big.NewInt(1))
+
+	randInt, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		panic(err)
+	}
+	return randInt
+}
+
+// Generate a random string of length n
+// We will use these for string IDs
+func RandomString(n int) string {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
+	return base64.URLEncoding.EncodeToString(b)[:n]
 }
