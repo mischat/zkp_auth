@@ -26,12 +26,15 @@ func main() {
 	defer conn.Close()
 	c := pb.NewAuthClient(conn)
 
-	// Contact the server and print out its response.
+	// Send a Register request to the server
+	user := "alice@example.com"
+	y1 := int64(2)
+	y2 := int64(3)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.Register(ctx, &pb.RegisterRequest{Y1: 13, Y2: 666})
+	_, err = c.Register(ctx, &pb.RegisterRequest{User: user, Y1: y1, Y2: y2})
 	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+		log.Fatalf("could not register: %v", err)
 	}
-	log.Printf("Greeting: %s", r.String())
+	log.Printf("Registered user %s with Y1=%d and Y2=%d", user, y1, y2)
 }
