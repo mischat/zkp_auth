@@ -18,10 +18,15 @@ var (
 	addr = flag.String("addr", "localhost:50051", "the address to connect to")
 
 	// Public variables needed for the auth system to work
+	// ultimately these need to be strings, as bigInts are bigger than int64s
 	p = flag.Int64("p", 23, "the prime number we group from")
 	q = flag.Int64("q", 11, "for prime order calculation")
 	g = flag.Int64("g", 4, "first in group")
 	h = flag.Int64("h", 9, "second in group")
+
+	// This is the client id and secret
+	u = flag.String("u", "alice@example.com", "the client id")
+	x = flag.Int64("x", 6, "the client secret")
 )
 
 func main() {
@@ -33,6 +38,8 @@ func main() {
 	bG := big.NewInt(*g)
 	bH := big.NewInt(*h)
 
+	bX := big.NewInt(*x)
+
 	log.Printf("p: %v q: %v g: %v h: %v\n", bP, bQ, bG, bH)
 
 	// This makes sure that we validate the public variables passed in
@@ -40,6 +47,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not validate public variables: %v", err)
 	}
+	// The config is now validated and in good shape
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -49,15 +57,19 @@ func main() {
 	defer conn.Close()
 	c := pb.NewAuthClient(conn)
 
-	// Send a Register request to the server
-	user := "alice1@example.com"
-	y1 := int64(2)
-	y2 := int64(3)
+	// Now to calculate y1
+	y1 := zkpautils.CalculateExp(bG, bX, bP)
+	// Now to calculate y2
+	y2 := zkpautils.CalculateExp(bH, bX, bP)
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	_, err = c.Register(ctx, &pb.RegisterRequest{User: user, Y1: y1, Y2: y2})
+	// Note that i am doing a conversion from big.Int to int64 here
+	// Ideally we would change the proto to use strings instead of int64s but i didn't want to do this for this excercise
+	// bigInt has a marshaltext and unmarshaltext method that we could use to do this
+	_, err = c.Register(ctx, &pb.RegisterRequest{User: *u, Y1: zkpautils.BigIntToInt64(y1), Y2: zkpautils.BigIntToInt64(y2)})
 	if err != nil {
 		log.Fatalf("could not register: %v", err)
 	}
-	log.Printf("Registered user %s with Y1=%d and Y2=%d", user, y1, y2)
+	log.Printf("Registered user %s with Y1=%d and Y2=%d", *u, y1, y2)
 }

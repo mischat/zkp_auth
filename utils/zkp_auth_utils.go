@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"log"
+	"math"
 	"math/big"
 )
 
@@ -49,4 +50,24 @@ func VerifyProof(r *big.Int, gh *big.Int, s *big.Int, y *big.Int, c *big.Int, p 
 	}
 
 	return true, nil
+}
+
+// This method is used to convert a big.Int to an int64
+func BigIntToInt64(x *big.Int) int64 {
+	if x.IsInt64() {
+		return x.Int64()
+	}
+	if x.Sign() == 0 {
+		return 0
+	}
+	if x.Sign() > 0 {
+		if x.Cmp(big.NewInt(math.MaxInt64)) > 0 {
+			return math.MaxInt64
+		}
+	} else {
+		if x.Cmp(big.NewInt(math.MinInt64)) < 0 {
+			return math.MinInt64
+		}
+	}
+	return x.Int64()
 }

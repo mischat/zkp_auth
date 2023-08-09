@@ -9,6 +9,7 @@ import (
 	"net"
 
 	pb "github.com/mischat/zkp_auth/pb"
+	zkpautils "github.com/mischat/zkp_auth/utils"
 	"google.golang.org/grpc"
 )
 
@@ -71,6 +72,15 @@ func main() {
 	bQ := big.NewInt(*q)
 	bG := big.NewInt(*g)
 	bH := big.NewInt(*h)
+
+	log.Printf("p: %v q: %v g: %v h: %v\n", bP, bQ, bG, bH)
+
+	// This makes sure that we validate the public variables passed in
+	_, err := zkpautils.ValidatePublicVariables(bP, bQ, bG, bH)
+	if err != nil {
+		log.Fatalf("could not validate public variables: %v", err)
+	}
+	// The config is now validated and in good shape
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
