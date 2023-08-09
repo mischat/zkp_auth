@@ -16,6 +16,6 @@ func TestCalculateExp(t *testing.T) {
 	y := zkutils.CalculateExp(g, x, p)
 
 	if y.Cmp(expectedY) != 0 {
-		t.Errorf("CalculateY(%v, %v, %v) = %v, expected %v", g, x, p, y, expectedY)
+		t.Errorf("CalculateExp(%v, %v, %v) = %v, expected %v", g, x, p, y, expectedY)
 	}
 }
