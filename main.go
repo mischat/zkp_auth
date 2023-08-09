@@ -9,9 +9,11 @@ import (
 	zkutils "github.com/mischat/zkp_auth/utils"
 )
 
+// Ultimately we are going to use this script to generate the public data we need
+// To setup our ZKP Auth system
 func main() {
 	fmt.Println("Hello, this is a walk through of the algorithm!")
-	//Firstly let's get a prime number, and then we need to find a group.
+	// Firstly let's get a prime number, and then we need to find a group.
 	// Generate the prime numbers less than or equal to 20
 	ps := primes.Sieve(20000)
 	fmt.Println(ps)
