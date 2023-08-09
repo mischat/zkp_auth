@@ -27,8 +27,8 @@ func ValidatePublicVariables(p *big.Int, q *big.Int, g *big.Int, h *big.Int) (bo
 	return true, nil
 }
 
-func CalculateY(g *big.Int, x *big.Int, p *big.Int) *big.Int {
-	return new(big.Int).Mod(new(big.Int).Exp(g, x, nil), p)
+func CalculateExp(gh *big.Int, xk *big.Int, p *big.Int) *big.Int {
+	return new(big.Int).Mod(new(big.Int).Exp(gh, xk, nil), p)
 }
 
 //func main() {

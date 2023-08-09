@@ -35,10 +35,10 @@ func main() {
 	x := big.NewInt(6)
 
 	// Now to calculate y1
-	y1 := zkal.CalculateY(g, x, p)
+	y1 := zkal.CalculateExp(g, x, p)
 
 	// Now to calculate y2
-	y2 := zkal.CalculateY(h, x, p)
+	y2 := zkal.CalculateExp(h, x, p)
 
 	// This needs to be sent to Victor in the registration phase
 	fmt.Printf("Peggy sends y1: %d and y2: %d\n", y1, y2)
@@ -47,8 +47,8 @@ func main() {
 	k := big.NewInt(7)
 
 	// Now to calculate (r1, r2) = g^k, h^k
-	r1 := new(big.Int).Mod(new(big.Int).Exp(g, k, nil), p)
-	r2 := new(big.Int).Mod(new(big.Int).Exp(h, k, nil), p)
+	r1 := zkal.CalculateExp(g, k, p)
+	r2 := zkal.CalculateExp(h, k, p)
 
 	fmt.Printf("Peggy sends r1: %d and r2: %d\n", r1, r2)
 
