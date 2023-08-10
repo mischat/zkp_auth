@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"net"
+	"time"
 
 	pb "github.com/mischat/zkp_auth/pb"
 	zkpautils "github.com/mischat/zkp_auth/utils"
@@ -30,12 +31,15 @@ type server struct {
 	// This datastructure doesn't have any timeout in place
 	// One for the future, would be good for these not to be valid for long
 	authenticationData map[string]Authentication
+
+	sessionData map[string]Session
 }
 
 func newServer() *server {
 	return &server{
 		userRegData:        make(map[string]UserRegistration),
 		authenticationData: make(map[string]Authentication),
+		sessionData:        make(map[string]Session),
 	}
 }
 
@@ -46,11 +50,15 @@ type UserRegistration struct {
 }
 
 type Authentication struct {
-	user    string
-	r1      *big.Int
-	r2      *big.Int
-	c       *big.Int
-	session string
+	user string
+	r1   *big.Int
+	r2   *big.Int
+	c    *big.Int
+}
+
+type Session struct {
+	user      string
+	createdAt time.Time
 }
 
 // This implements the Register gRPC call
@@ -76,6 +84,8 @@ func (s *server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 	return &pb.RegisterResponse{}, nil
 }
 
+// This is the second step in the authentication process
+// The client will send the r1 and r2 values based on a random value k
 func (s *server) CreateAuthenticationChallenge(ctx context.Context, in *pb.AuthenticationChallengeRequest) (*pb.AuthenticationChallengeResponse, error) {
 	log.Printf("Received UserID: %v", in.GetUser())
 	log.Printf("Received R1: %v", in.GetR1())
@@ -100,15 +110,60 @@ func (s *server) CreateAuthenticationChallenge(ctx context.Context, in *pb.Authe
 	authId := zkpautils.RandomString(20)
 
 	s.authenticationData[authId] = Authentication{
-		user:    in.GetUser(),
-		r1:      new(big.Int).SetInt64(in.GetR1()),
-		r2:      new(big.Int).SetInt64(in.GetR2()),
-		c:       c,
-		session: "",
+		user: in.GetUser(),
+		r1:   new(big.Int).SetInt64(in.GetR1()),
+		r2:   new(big.Int).SetInt64(in.GetR2()),
+		c:    c,
 	}
 
 	return &pb.AuthenticationChallengeResponse{AuthId: authId, C: zkpautils.BigIntToInt64(c)}, nil
 
+}
+
+// This is the third step in the authentication process
+// This is where the verifier proofs authentication with no knowledge of the secret x
+func (s *server) VerifyAuthentication(ctx context.Context, in *pb.AuthenticationAnswerRequest) (*pb.AuthenticationAnswerResponse, error) {
+	log.Printf("Received AuthID: %v", in.GetAuthId())
+	log.Printf("Received S: %v", in.GetS())
+
+	bS := new(big.Int).SetInt64(in.GetS())
+	// Retrieve Auth object from map
+	auth, exists := s.authenticationData[in.GetAuthId()]
+	if !exists {
+		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("authId doesn't exists")
+	}
+
+	// Retrieve User from the map
+	user, exists := s.userRegData[auth.user]
+	if !exists {
+		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("user doesn't exists")
+	}
+
+	// Now we have all the data we need to validate the proof
+	// Now the verifier needs to verify the proof
+	// r1 = g^s . y1^c mod p
+	_, err := zkpautils.VerifyProof(auth.r1, big.NewInt(*g), bS, user.y1, auth.c, big.NewInt(*p))
+	if err != nil {
+		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r1 does not match", err)
+	}
+
+	// r2 = h^s . y2^c mod p
+	_, err = zkpautils.VerifyProof(auth.r2, big.NewInt(*h), bS, user.y2, auth.c, big.NewInt(*p))
+	if err != nil {
+		log.Fatal("r2 does not match", err)
+		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r2 does not match", err)
+	}
+
+	log.Println("Proof verified!")
+
+	sessionId := zkpautils.RandomString(20)
+
+	s.sessionData[sessionId] = Session{
+		user:      auth.user,
+		createdAt: time.Now(),
+	}
+
+	return &pb.AuthenticationAnswerResponse{SessionId: sessionId}, nil
 }
 
 func main() {

@@ -91,7 +91,15 @@ func main() {
 
 	authId := resp.AuthId
 	chal := big.NewInt(resp.C)
-
 	log.Printf("authId: %s c: %d", authId, chal)
 
+	// Not to calculate s = (k - c .x) mod q
+	s := zkpautils.CalculateS(k, chal, bX, bQ)
+
+	verResp, err := c.VerifyAuthentication(ctx, &pb.AuthenticationAnswerRequest{AuthId: authId, S: zkpautils.BigIntToInt64(s)})
+	if err != nil {
+		log.Fatalf("Failed to auth: %v", err)
+	}
+
+	log.Printf("Success, this is our session ID: '%s'", verResp.SessionId)
 }
