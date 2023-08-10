@@ -11,6 +11,16 @@ import (
 
 // ValidatePublicVariables takes the public variables and validates them
 func ValidatePublicVariables(p *big.Int, q *big.Int, g *big.Int, h *big.Int) (bool, error) {
+	// p is a prime number
+	if !p.ProbablyPrime(20) {
+		return false, fmt.Errorf("p:'%d' is not prime", p)
+	}
+
+	// q is a prime number
+	if !q.ProbablyPrime(20) {
+		return false, fmt.Errorf("q:'%d' is not prime", q)
+	}
+
 	// This validates that q divides p - 1 evenly
 	pDivQ := new(big.Int).Div(new(big.Int).Sub(p, big.NewInt(1)), q)
 	if pDivQ.Mod(big.NewInt(0), big.NewInt(2)) == big.NewInt(0) {
@@ -19,12 +29,14 @@ func ValidatePublicVariables(p *big.Int, q *big.Int, g *big.Int, h *big.Int) (bo
 
 	// g and h must have the same prime order
 	// g^q mod p = 1
-	if new(big.Int).Exp(g, q, p).Cmp(big.NewInt(1)) != 0 {
+	gpq := new(big.Int).Exp(g, q, p)
+	if gpq.Cmp(big.NewInt(1)) != 0 {
 		return false, fmt.Errorf("g:'%d' does not have order q:'%d'", g, q)
 	}
 
 	// h^q mod p = 1
-	if new(big.Int).Exp(h, q, p).Cmp(big.NewInt(1)) != 0 {
+	hpq := new(big.Int).Exp(h, q, p)
+	if hpq.Cmp(big.NewInt(1)) != 0 {
 		return false, fmt.Errorf("h:'%d' does not have order q:'%d'", h, q)
 	}
 
