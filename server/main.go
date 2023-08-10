@@ -43,12 +43,13 @@ func newServer() *server {
 	}
 }
 
-// This stores the user registration data agains the user ID
+// This stores the user registration data against the user ID
 type UserRegistration struct {
 	y1 *big.Int
 	y2 *big.Int
 }
 
+// This stores the authentication data against the auth ID
 type Authentication struct {
 	user string
 	r1   *big.Int
@@ -56,6 +57,7 @@ type Authentication struct {
 	c    *big.Int
 }
 
+// This stores the session data against the session ID
 type Session struct {
 	user      string
 	createdAt time.Time
@@ -71,7 +73,7 @@ func (s *server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 	// Retrieve User from the map
 	_, exists := s.userRegData[in.GetUser()]
 	if exists {
-		return &pb.RegisterResponse{}, fmt.Errorf("user already exists")
+		return &pb.RegisterResponse{}, fmt.Errorf("user '%v' already exists", in.GetUser())
 	}
 	// Store Y1 and Y2 in the userRegData map
 	s.userRegData[in.GetUser()] = UserRegistration{
@@ -130,13 +132,13 @@ func (s *server) VerifyAuthentication(ctx context.Context, in *pb.Authentication
 	// Retrieve Auth object from map
 	auth, exists := s.authenticationData[in.GetAuthId()]
 	if !exists {
-		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("authId doesn't exists")
+		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("authId doesn't exists: %v", in.GetAuthId())
 	}
 
 	// Retrieve User from the map
 	user, exists := s.userRegData[auth.user]
 	if !exists {
-		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("user doesn't exists")
+		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("user doesn't exists: %v", auth.user)
 	}
 
 	// Now we have all the data we need to validate the proof
@@ -144,24 +146,31 @@ func (s *server) VerifyAuthentication(ctx context.Context, in *pb.Authentication
 	// r1 = g^s . y1^c mod p
 	_, err := zkpautils.VerifyProof(auth.r1, big.NewInt(*g), bS, user.y1, auth.c, big.NewInt(*p))
 	if err != nil {
-		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r1 does not match", err)
+		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r1 does not match: %v", err)
 	}
 
 	// r2 = h^s . y2^c mod p
 	_, err = zkpautils.VerifyProof(auth.r2, big.NewInt(*h), bS, user.y2, auth.c, big.NewInt(*p))
 	if err != nil {
 		log.Fatal("r2 does not match", err)
-		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r2 does not match", err)
+		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r2 does not match: %v", err)
 	}
 
 	log.Println("Proof verified!")
 
+	// Now we mint a sessionID
 	sessionId := zkpautils.RandomString(20)
 
+	// Now we store the sessionID against the user, with a createdAt timestamp
+	// for the future
 	s.sessionData[sessionId] = Session{
 		user:      auth.user,
 		createdAt: time.Now(),
 	}
+
+	// This deletes the old authentication data object
+	// as we don't want to use it again.
+	delete(s.authenticationData, in.GetAuthId())
 
 	return &pb.AuthenticationAnswerResponse{SessionId: sessionId}, nil
 }
@@ -188,9 +197,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
 	s := grpc.NewServer()
 	pb.RegisterAuthServer(s, newServer())
 	log.Printf("server listening at %v", lis.Addr())
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
