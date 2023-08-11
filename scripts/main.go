@@ -24,7 +24,7 @@ import (
 // https://en.wikipedia.org/wiki/Schnorr_group
 func main() {
 	// Define command line flags
-	pFlag := flag.Int("p", 24, "the maximum prime number to search for")
+	pFlag := flag.Int("p", 100000, "the maximum prime number to search for")
 	flag.Parse()
 
 	fmt.Println("Hello, this setup script should be used to calaculate the public variables for the ZKP Auth system")
@@ -50,7 +50,7 @@ func main() {
 	for r = big.NewInt(2); r.Cmp(p) <= 0; r.Add(r, big.NewInt(2)) {
 		fmt.Printf("even number to divide by: '%d'\n", r)
 		tmp := (new(big.Int).Div(new(big.Int).Sub(p, big.NewInt(1)), r))
-		if tmp.ProbablyPrime(20) {
+		if tmp.ProbablyPrime(100) {
 			fmt.Println(tmp, " is probably prime")
 			q = tmp
 			break
@@ -67,30 +67,36 @@ func main() {
 	// Now we should have a valid q
 	fmt.Printf("The prime number q is selected as: '%d' and we have r: '%d'\n", q, r)
 
-	var generators []*big.Int
+	generator := new(big.Int)
 	// Now to try and generate a value for h and g that have the right order
 	for h := big.NewInt(2); h.Cmp(p) < 0; h.Add(h, big.NewInt(1)) {
 		g := new(big.Int).Exp(h, r, p)
 		if g.Cmp(big.NewInt(1)) == 0 {
 			continue
 		} else {
-			fmt.Printf("Found a generator of p and q: '%d'\n", g)
-			generators = append(generators, g)
-		}
-		if len(generators) == 2 {
-			break
+			if new(big.Int).Exp(g, q, p).Cmp(big.NewInt(1)) == 0 {
+				fmt.Printf("Found a generator of p and q: '%d'\n", g)
+				generator = g
+				break
+			}
 		}
 	}
 
-	// Now we should have our two generators
-	g := generators[0]
-	h := generators[1]
-	fmt.Printf("The generators are: g:'%d' h: '%d'\n", g, h)
+	// Now we should have our generator
+	g := generator
+	fmt.Printf("The generators is: g:'%d'\n", g)
 
+	group := []*big.Int{}
+	for i := big.NewInt(1); i.Cmp(q) < 0; i.Add(i, big.NewInt(1)) {
+		tmp := new(big.Int).Exp(g, i, p)
+		group = append(group, tmp)
+	}
+
+	fmt.Println("The group is: ", group)
 	// I think that this sanity validation check is a good idea
 	// It might all be implied here
-	fmt.Printf("Now to sanity check the values p:'%d' q: '%d' g: '%d' h: '%d'\n", p, q, g, h)
-	valid, err := zkpautils.ValidatePublicVariables(p, q, g, h)
+	fmt.Printf("Now to sanity check the values p:'%d' q: '%d' g: '%d' h: '%d'\n", p, q, group[0], group[1])
+	valid, err := zkpautils.ValidatePublicVariables(p, q, group[0], group[1])
 
 	if err != nil {
 		log.Fatal(err)
