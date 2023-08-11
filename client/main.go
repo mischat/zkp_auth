@@ -21,8 +21,8 @@ var (
 	// ultimately these need to be strings, as bigInts are bigger than int64s
 	p = flag.Int64("p", 23, "the prime number we group from")
 	q = flag.Int64("q", 11, "for prime order calculation")
-	g = flag.Int64("g", 4, "first in group")
-	h = flag.Int64("h", 9, "second in group")
+	g = flag.Int64("g", 12, "first in group")
+	h = flag.Int64("h", 13, "second in group")
 
 	// This is the client id and secret
 	u = flag.String("u", "alice@example.com", "the client id")

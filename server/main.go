@@ -20,8 +20,8 @@ var (
 	// Public variables needed for the auth system to work
 	p = flag.Int64("p", 23, "the prime number we group from")
 	q = flag.Int64("q", 11, "for prime order calculation")
-	g = flag.Int64("g", 4, "first in group")
-	h = flag.Int64("h", 9, "second in group")
+	g = flag.Int64("g", 12, "first in group")
+	h = flag.Int64("h", 13, "second in group")
 )
 
 // server is used to implement zkp_auth.server

@@ -24,7 +24,7 @@ import (
 // https://en.wikipedia.org/wiki/Schnorr_group
 func main() {
 	// Define command line flags
-	pFlag := flag.Int("p", 100000, "the maximum prime number to search for")
+	pFlag := flag.Int("p", 20000, "the maximum prime number to search for")
 	flag.Parse()
 
 	fmt.Println("Hello, this setup script should be used to calaculate the public variables for the ZKP Auth system")
@@ -44,40 +44,43 @@ func main() {
 
 	// Find a prime number q that divides p-1 evenly
 	// such that p = qr + 1
-	q := big.NewInt(0)
 	r := new(big.Int)
 
+	q := new(big.Int)
+
+	allPrimes := []*big.Int{}
+	allRs := []*big.Int{}
 	for r = big.NewInt(2); r.Cmp(p) <= 0; r.Add(r, big.NewInt(2)) {
-		fmt.Printf("even number to divide by: '%d'\n", r)
 		tmp := (new(big.Int).Div(new(big.Int).Sub(p, big.NewInt(1)), r))
 		if tmp.ProbablyPrime(100) {
 			fmt.Println(tmp, " is probably prime")
-			q = tmp
-			break
-		} else {
-			fmt.Println(tmp, " is not prime")
+			allPrimes = append(allPrimes, tmp)
+			allRs = append(allRs, r)
 		}
 	}
 
-	// This shouldn't happen
-	if q == big.NewInt(0) {
-		log.Fatal("No prime number q found")
-	}
-
-	// Now we should have a valid q
-	fmt.Printf("The prime number q is selected as: '%d' and we have r: '%d'\n", q, r)
+	fmt.Println("All the primes we found: ", allPrimes)
 
 	generator := new(big.Int)
-	// Now to try and generate a value for h and g that have the right order
-	for h := big.NewInt(2); h.Cmp(p) < 0; h.Add(h, big.NewInt(1)) {
-		g := new(big.Int).Exp(h, r, p)
-		if g.Cmp(big.NewInt(1)) == 0 {
-			continue
-		} else {
-			if new(big.Int).Exp(g, q, p).Cmp(big.NewInt(1)) == 0 {
-				fmt.Printf("Found a generator of p and q: '%d'\n", g)
-				generator = g
-				break
+
+	for prime := range allPrimes {
+		fmt.Println("prime: ", allPrimes[prime])
+
+		// Now we should have a valid q
+		fmt.Printf("The prime number q is selected as: '%d' and we have r: '%d'\n", allPrimes[prime], allRs[prime])
+
+		// Now to try and generate a value for h and g that have the right order
+		for h := big.NewInt(2); h.Cmp(p) < 0; h.Add(h, big.NewInt(1)) {
+			g := new(big.Int).Exp(h, allRs[prime], p)
+			if g.Cmp(big.NewInt(1)) == 0 {
+				continue
+			} else {
+				if new(big.Int).Exp(g, allPrimes[prime], p).Cmp(big.NewInt(1)) == 0 {
+					fmt.Printf("Found a generator of p and q: '%d'\n", g)
+					generator = g
+					q = allPrimes[prime]
+					break
+				}
 			}
 		}
 	}
