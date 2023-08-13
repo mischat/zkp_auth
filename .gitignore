@@ -4,3 +4,7 @@ zkp_auth
 .vscode/
 
 __debug*
+
+# binary files 
+client/client
+server/server
