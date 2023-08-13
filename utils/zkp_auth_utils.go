@@ -2,7 +2,6 @@ package utils
 
 import (
 	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"math/big"
@@ -26,6 +25,7 @@ func ValidatePublicVariables(p *big.Int, q *big.Int, g *big.Int, h *big.Int) (bo
 		return false, fmt.Errorf("q:'%d' needs to divide evenly to p-1 where p:'%d'", q, p)
 	}
 
+	// TODO: use this to valid the order of g and h
 	// g and h must have the same prime order
 	// g^q mod p = 1
 	gpq := new(big.Int).Exp(g, q, p)
@@ -77,15 +77,4 @@ func RandomBigInt() *big.Int {
 		panic(err)
 	}
 	return randInt
-}
-
-// Generate a random string of length n
-// We will use these for string IDs
-func RandomString(n int) string {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		panic(err)
-	}
-	return base64.URLEncoding.EncodeToString(b)[:n]
 }

@@ -51,6 +51,8 @@ func main() {
 	log.Printf("p: %v q: %v g: %v h: %v\n", p, q, g, h)
 
 	// This makes sure that we validate the public variables passed in
+	// This ensures from the clients POV that what they are using is correct
+	// That p,q,g,h make sense
 	_, err := zkpautils.ValidatePublicVariables(p, q, g, h)
 	if err != nil {
 		log.Fatalf("could not validate public variables: %v", err)
@@ -72,9 +74,7 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	// Note that i am doing a conversion from big.Int to int64 here
-	// Ideally we would change the proto to use strings instead of int64s but i didn't want to do this for this excercise
-	// bigInt has a marshaltext and unmarshaltext method that we could use to do this
+
 	_, err = c.Register(ctx, &pb.RegisterRequest{User: *uFlag, Y1: y1.String(), Y2: y2.String()})
 	if err != nil {
 		log.Fatalf("could not register: %v", err)
@@ -82,9 +82,13 @@ func main() {
 	log.Printf("Registered user %s with Y1=%d and Y2=%d", *uFlag, y1, y2)
 
 	// now we need to generate a random k
-	// it is important that these are unique for each request
-	// ideally we store the used ones somewhere, but for this excercise we will just generate a new random one each time
-	// using a big(ish) number to ensure some randomness
+	// TODO: Need to ascertain whether I can use a incrementing, contiguous nonce here
+	// Initially i wanted to use a nonce here, but
+	// I am not sure about the maths behind it, I wasn't sure if it would
+	// compromise the security of the system, so I decided to use a random number
+	// Finally, we should be storing the data
+	// The way we store it would be decided based on whether we use a nonce or not
+	// will add a note about this in the README
 	k := zkpautils.RandomBigInt()
 	log.Printf("Generated random k: %d", k)
 
