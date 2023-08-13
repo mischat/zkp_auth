@@ -20,10 +20,15 @@ var (
 	portFlag = flag.Int("port", 50051, "The server port")
 
 	// Public variables needed for the auth system to work
-	pFlag = flag.Int64("p", 23, "the prime number we group from")
-	qFlag = flag.Int64("q", 11, "for prime order calculation")
-	gFlag = flag.Int64("g", 12, "first in group")
-	hFlag = flag.Int64("h", 13, "second in group")
+	pFlag = flag.String("p", "23", "the prime number we start our group")
+	qFlag = flag.String("q", "11", "for prime order calculation")
+	gFlag = flag.String("g", "12", "first number from group")
+	hFlag = flag.String("h", "13", "second number from group")
+
+	p = new(big.Int)
+	q = new(big.Int)
+	g = new(big.Int)
+	h = new(big.Int)
 )
 
 // server is used to implement zkp_auth.server
@@ -94,7 +99,6 @@ func (srv *server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Re
 	if exists {
 		return &pb.RegisterResponse{}, fmt.Errorf("user '%v' already exists", in.GetUser())
 	}
-
 	// TODO: validate that y1 and y2 are in the group
 
 	// Store Y1 and Y2 in the userRegData map
@@ -126,6 +130,7 @@ func (srv *server) CreateAuthenticationChallenge(ctx context.Context, in *pb.Aut
 	r2 := new(big.Int)
 	r2.SetString(in.GetR2(), 10)
 
+	// TODO: write this into the README file
 	// Now the challenger picks a random value c
 	// it is important that these are unique for each user
 	// ideally we store the used ones somewhere, like in an associative array or something.
@@ -172,13 +177,13 @@ func (srv *server) VerifyAuthentication(ctx context.Context, in *pb.Authenticati
 	// Now we have all the data we need to validate the proof
 	// Now the verifier needs to verify the proof
 	// r1 = g^s . y1^c mod p
-	_, err := zkpautils.VerifyProof(auth.r1, big.NewInt(*gFlag), s, user.y1, auth.c, big.NewInt(*pFlag))
+	_, err := zkpautils.VerifyProof(auth.r1, g, s, user.y1, auth.c, p)
 	if err != nil {
 		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r1 does not match: %v", err)
 	}
 
 	// r2 = h^s . y2^c mod p
-	_, err = zkpautils.VerifyProof(auth.r2, big.NewInt(*hFlag), s, user.y2, auth.c, big.NewInt(*pFlag))
+	_, err = zkpautils.VerifyProof(auth.r2, h, s, user.y2, auth.c, p)
 	if err != nil {
 		log.Fatal("r2 does not match", err)
 		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r2 does not match: %v", err)
@@ -207,10 +212,10 @@ func main() {
 	flag.Parse()
 
 	// creating bigInts from the flags
-	p := big.NewInt(*pFlag)
-	q := big.NewInt(*qFlag)
-	g := big.NewInt(*gFlag)
-	h := big.NewInt(*hFlag)
+	p.SetString(*pFlag, 10)
+	q.SetString(*qFlag, 10)
+	g.SetString(*gFlag, 10)
+	h.SetString(*hFlag, 10)
 
 	log.Printf("p: %v q: %v g: %v h: %v\n", p, q, g, h)
 
