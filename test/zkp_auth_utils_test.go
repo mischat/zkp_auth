@@ -43,6 +43,18 @@ func TestCalculateExp(t *testing.T) {
 	if y.Cmp(expectedY) != 0 {
 		t.Errorf("CalculateExp(%v, %v, %v) = %v, expected %v", g, x, p, y, expectedY)
 	}
+
+	// should fail
+	g = big.NewInt(2892)
+	x = big.NewInt(300)
+	p = big.NewInt(10008)
+	expectedY = big.NewInt(4984)
+
+	y = zkutils.CalculateExp(g, x, p)
+
+	if y.Cmp(expectedY) == 0 {
+		t.Errorf("CalculateExp(%v, %v, %v) = %v, expected %v", g, x, p, y, expectedY)
+	}
 }
 
 func TestValidatePublicVariables(t *testing.T) {
