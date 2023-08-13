@@ -185,7 +185,6 @@ func (srv *server) VerifyAuthentication(ctx context.Context, in *pb.Authenticati
 	// r2 = h^s . y2^c mod p
 	_, err = zkpautils.VerifyProof(auth.r2, h, s, user.y2, auth.c, p)
 	if err != nil {
-		log.Fatal("r2 does not match", err)
 		return &pb.AuthenticationAnswerResponse{}, fmt.Errorf("r2 does not match: %v", err)
 	}
 

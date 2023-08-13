@@ -44,7 +44,7 @@ func ValidatePublicVariables(p *big.Int, q *big.Int, g *big.Int, h *big.Int) (bo
 
 // This function is used to calculate the initial (y1, y2) = g^x, h^x and (r1, r2) = g^k, h^k
 func CalculateExp(gh *big.Int, xk *big.Int, p *big.Int) *big.Int {
-	return new(big.Int).Mod(new(big.Int).Exp(gh, xk, nil), p)
+	return new(big.Int).Mod(new(big.Int).Exp(gh, xk, p), p)
 }
 
 // Prover needs to compute S with their random k and the challenger's c
@@ -57,8 +57,11 @@ func CalculateS(k *big.Int, c *big.Int, x *big.Int, q *big.Int) *big.Int {
 // r1 = g^s . y1^c mod p
 // r2 = h^s . y2^c mod p
 func VerifyProof(r *big.Int, gh *big.Int, s *big.Int, y *big.Int, c *big.Int, p *big.Int) (bool, error) {
-	if r.Cmp(new(big.Int).Mod(new(big.Int).Mul(new(big.Int).Exp(gh, s, nil), new(big.Int).Exp(y, c, nil)), p)) != 0 {
-		log.Fatalf("r1 does not match")
+	lhs := new(big.Int).Exp(gh, s, p)
+	rhs := new(big.Int).Exp(y, c, p)
+
+	if r.Cmp(new(big.Int).Mod(new(big.Int).Mul(lhs, rhs), p)) != 0 {
+		log.Println("r1 does not match")
 		return false, fmt.Errorf("r:'%d' does not match gh:'%d' s:'%d' y:'%d' c:'%d' p:'%d'", r, gh, s, y, c, p)
 	}
 
