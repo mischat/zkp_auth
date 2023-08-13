@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"log"
@@ -61,6 +63,17 @@ type Authentication struct {
 type Session struct {
 	user      string
 	createdAt time.Time
+}
+
+// Generate a random string of length n
+// We will use these for string IDs
+func randomString(n int) string {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
+	return base64.URLEncoding.EncodeToString(b)[:n]
 }
 
 // This implements the Register gRPC call
@@ -123,7 +136,7 @@ func (srv *server) CreateAuthenticationChallenge(ctx context.Context, in *pb.Aut
 
 	// Store c in the authenticationmap
 	// Note that this will only allow for a user to authenticate in one place at a time
-	authId := zkpautils.RandomString(20)
+	authId := randomString(20)
 
 	srv.authenticationData[authId] = Authentication{
 		user: in.GetUser(),
@@ -174,7 +187,7 @@ func (srv *server) VerifyAuthentication(ctx context.Context, in *pb.Authenticati
 	log.Println("Proof verified!")
 
 	// Now we mint a sessionID
-	sessionId := zkpautils.RandomString(20)
+	sessionId := randomString(20)
 
 	// Now we store the sessionID against the user, with a createdAt timestamp
 	// for the future
