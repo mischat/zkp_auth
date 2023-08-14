@@ -68,7 +68,7 @@ func VerifyProof(r *big.Int, gh *big.Int, s *big.Int, y *big.Int, c *big.Int, p 
 func RandomBigInt() *big.Int {
 	// Max random value, a 16-bits integer, i.e 2^16 - 1
 	max := new(big.Int)
-	max.Exp(big.NewInt(2), big.NewInt(16), nil).Sub(max, big.NewInt(1))
+	max.Exp(big.NewInt(2), big.NewInt(256), nil).Sub(max, big.NewInt(1))
 
 	randInt, err := rand.Int(rand.Reader, max)
 	if err != nil {

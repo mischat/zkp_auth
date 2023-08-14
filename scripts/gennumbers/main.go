@@ -26,7 +26,7 @@ import (
 // https://en.wikipedia.org/wiki/Schnorr_group
 func main() {
 	// Define command line flags
-	pFlag := flag.Int("p", 200000, "the maximum prime number to search for")
+	pFlag := flag.Int("p", 20000, "the maximum prime number to search for")
 	flag.Parse()
 
 	fmt.Println("Hello, this setup script should be used to calaculate the public variables for the ZKP Auth system")
