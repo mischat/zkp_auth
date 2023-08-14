@@ -65,7 +65,6 @@ func main() {
 				allRs = append(allRs, new(big.Int).Div(pMinusOne, pToCheck))
 			}
 		}
-
 	}
 
 	fmt.Printf("We have found '%d' many primes\n", len(allPrimes))
