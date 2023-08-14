@@ -17,6 +17,7 @@ import (
 var (
 	addrFlag = flag.String("addr", "localhost:50051", "the address to connect to")
 
+	// These need to be sync'd between the client and the server
 	// Public variables needed for the auth system to work
 	// String so that we can handle big numbers
 	pFlag = flag.String("p", "23", "the prime number we group from")
