@@ -68,9 +68,9 @@ func main() {
 	c := pb.NewAuthClient(conn)
 
 	// Now to calculate y1
-	y1 := zkpautils.CalculateExp(g, x, p)
+	y1 := new(big.Int).Exp(g, x, p)
 	// Now to calculate y2
-	y2 := zkpautils.CalculateExp(h, x, p)
+	y2 := new(big.Int).Exp(h, x, p)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -93,8 +93,8 @@ func main() {
 	log.Printf("Generated random k: %d", k)
 
 	// Now to calculate (r1, r2) = g^k, h^k
-	r1 := zkpautils.CalculateExp(g, k, p)
-	r2 := zkpautils.CalculateExp(h, k, p)
+	r1 := new(big.Int).Exp(g, k, p)
+	r2 := new(big.Int).Exp(h, k, p)
 
 	resp, err := c.CreateAuthenticationChallenge(ctx, &pb.AuthenticationChallengeRequest{User: *uFlag, R1: r1.String(), R2: r2.String()})
 	if err != nil {

@@ -14,7 +14,7 @@ func TestCalculateExp(t *testing.T) {
 	p := big.NewInt(23)
 	expectedY := big.NewInt(2)
 
-	y := zkutils.CalculateExp(g, x, p)
+	y := new(big.Int).Exp(g, x, p)
 
 	if y.Cmp(expectedY) != 0 {
 		t.Errorf("CalculateExp(%v, %v, %v) = %v, expected %v", g, x, p, y, expectedY)
@@ -26,7 +26,7 @@ func TestCalculateExp(t *testing.T) {
 	p = big.NewInt(10009)
 	expectedY = big.NewInt(6419)
 
-	y = zkutils.CalculateExp(g, x, p)
+	y = new(big.Int).Exp(g, x, p)
 
 	if y.Cmp(expectedY) != 0 {
 		t.Errorf("CalculateExp(%v, %v, %v) = %v, expected %v", g, x, p, y, expectedY)
@@ -38,7 +38,7 @@ func TestCalculateExp(t *testing.T) {
 	p = big.NewInt(10009)
 	expectedY = big.NewInt(4984)
 
-	y = zkutils.CalculateExp(g, x, p)
+	y = new(big.Int).Exp(g, x, p)
 
 	if y.Cmp(expectedY) != 0 {
 		t.Errorf("CalculateExp(%v, %v, %v) = %v, expected %v", g, x, p, y, expectedY)
@@ -50,7 +50,7 @@ func TestCalculateExp(t *testing.T) {
 	p = big.NewInt(10008)
 	expectedY = big.NewInt(4984)
 
-	y = zkutils.CalculateExp(g, x, p)
+	y = new(big.Int).Exp(g, x, p)
 
 	if y.Cmp(expectedY) == 0 {
 		t.Errorf("CalculateExp(%v, %v, %v) = %v, expected %v", g, x, p, y, expectedY)
@@ -140,5 +140,33 @@ func TestValidatePublicVariables(t *testing.T) {
 	valid, err = zkutils.ValidatePublicVariables(p, q, g, h)
 	if valid || err == nil {
 		t.Errorf("ValidatePublicVariables(%d, %d, %d, %d) = (%t, %v), expected (false, error)", p, q, g, h, valid, err)
+	}
+}
+
+func TestCalculateS(t *testing.T) {
+	// should pass, as per toy example
+	k := big.NewInt(7)
+	c := big.NewInt(4)
+	x := big.NewInt(6)
+	q := big.NewInt(11)
+
+	s := zkutils.CalculateS(k, c, x, q)
+
+	expectedS := big.NewInt(5)
+	if s.Cmp(expectedS) != 0 {
+		t.Errorf("CalculateS(%d, %d, %d, %d) = %d; expected %d", k, c, x, q, s, expectedS)
+	}
+
+	// should fail
+	k = big.NewInt(7)
+	c = big.NewInt(4)
+	x = big.NewInt(6)
+	q = big.NewInt(11)
+
+	s = zkutils.CalculateS(k, c, x, q)
+
+	expectedS = big.NewInt(4)
+	if s.Cmp(expectedS) == 0 {
+		t.Errorf("CalculateS(%d, %d, %d, %d) = %d; expected %d", k, c, x, q, s, expectedS)
 	}
 }

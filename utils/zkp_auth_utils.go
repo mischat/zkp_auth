@@ -42,11 +42,6 @@ func ValidatePublicVariables(p *big.Int, q *big.Int, g *big.Int, h *big.Int) (bo
 	return true, nil
 }
 
-// This function is used to calculate the initial (y1, y2) = g^x, h^x and (r1, r2) = g^k, h^k
-func CalculateExp(gh *big.Int, xk *big.Int, p *big.Int) *big.Int {
-	return new(big.Int).Mod(new(big.Int).Exp(gh, xk, p), p)
-}
-
 // Prover needs to compute S with their random k and the challenger's c
 // s = (k - c .x) mod q
 func CalculateS(k *big.Int, c *big.Int, x *big.Int, q *big.Int) *big.Int {
